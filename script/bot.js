@@ -1,4 +1,4 @@
-const fs = global.nodemodule["fs-extra"];
+const fs = require('fs-extra');
 module.exports.config = {
   name: "bot",
   version: "1.0.1",
