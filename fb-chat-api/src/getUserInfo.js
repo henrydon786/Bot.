@@ -7,7 +7,6 @@ function formatData(data) {
   var retObj = {};
 
   for (var prop in data) {
-    // eslint-disable-next-line no-prototype-builtins
     if (data.hasOwnProperty(prop)) {
       var innerObj = data[prop];
       retObj[prop] = {
@@ -19,9 +18,7 @@ function formatData(data) {
         gender: innerObj.gender,
         type: innerObj.type,
         isFriend: innerObj.is_friend,
-        isBirthday: !!innerObj.is_birthday,
-				searchTokens: innerObj.searchTokens,
-				alternateName: innerObj.alternateName,
+        isBirthday: !!innerObj.is_birthday
       };
     }
   }
@@ -31,20 +28,8 @@ function formatData(data) {
 
 module.exports = function(defaultFuncs, api, ctx) {
   return function getUserInfo(id, callback) {
-    var resolveFunc = function(){};
-    var rejectFunc = function(){};
-    var returnPromise = new Promise(function (resolve, reject) {
-      resolveFunc = resolve;
-      rejectFunc = reject;
-    });
-
     if (!callback) {
-      callback = function (err, friendList) {
-        if (err) {
-          return rejectFunc(err);
-        }
-        resolveFunc(friendList);
-      };
+      throw { error: "getUserInfo: need callback" };
     }
 
     if (utils.getType(id) !== "Array") {
@@ -68,7 +53,5 @@ module.exports = function(defaultFuncs, api, ctx) {
         log.error("getUserInfo", err);
         return callback(err);
       });
-
-    return returnPromise;
   };
 };
