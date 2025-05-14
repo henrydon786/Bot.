@@ -90,7 +90,7 @@ function showResult(message) {
 async function commandList() {
   try {
     const [listOfCommands, listOfCommandsEvent] = [document.getElementById('listOfCommands'), document.getElementById('listOfCommandsEvent')];
-    const response = await fetch('/scripts');
+    const response = await fetch('/script');
     const {
       commands,
       handleEvent,
