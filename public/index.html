@@ -1,37 +1,958 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Command Executor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/3.6.0-jquery.min.js"></script>
+    <script src="js/latest-toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --dark: #1e293b;
+            --darker: #0f172a;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        .menu-toggle {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            gap: 6px;
+        }
+        
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background-color: var(--light);
+            transition: all 0.3s ease;
+        }
+        
+        .menu-toggle.active span:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+        
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .menu-toggle.active span:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background-color: var(--dark);
+            z-index: 90;
+            transition: right 0.3s ease;
+            padding: 1rem;
+            border-left: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .sidebar.active {
+            right: 0;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-item {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-item i {
+            width: 24px;
+            text-align: center;
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(148, 163, 184, 0.1);
+        }
+        
+        .sidebar-item.active {
+            background-color: var(--primary);
+        }
+        
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-bio {
+            color: var(--gray);
+            text-align: center;
+            max-width: 500px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: var(--dark);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--light);
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: rgba(148, 163, 184, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 0.5rem;
+            color: var(--light);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .text-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .text-link:hover {
+            text-decoration: underline;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-3 {
+            margin-top: 1rem;
+        }
+        
+        /* Command List */
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .command-card {
+            background-color: rgba(148, 163, 184, 0.05);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .command-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .command-description {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+        
+        .command-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .command-tag {
+            font-size: 0.625rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            background-color: rgba(148, 163, 184, 0.1);
+            color: var(--gray);
+        }
+        
+        /* Online Users */
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .user-card {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: rgba(148, 163, 184, 0.05);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .user-id {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-bottom: 0.25rem;
+            word-break: break-all;
+        }
+        
+        .user-uptime {
+            font-size: 0.75rem;
+            color: var(--success);
+        }
+        
+        /* Tutorial */
+        .tutorial-step {
+            margin-bottom: 2rem;
+        }
+        
+        .tutorial-step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .tutorial-image {
+            width: 100%;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        /* Toastr Overrides */
+        .toast {
+            border-radius: 0.5rem !important;
+            padding: 1rem !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .toast-success {
+            background-color: var(--success) !important;
+        }
+        
+        .toast-error {
+            background-color: var(--danger) !important;
+        }
+        
+        .toast-info {
+            background-color: var(--primary) !important;
+        }
+        
+        .toast-warning {
+            background-color: var(--warning) !important;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main {
+                padding: 1.5rem;
+            }
+            
+            .sidebar {
+                width: 280px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Command Executor</h1>
-    <textarea id="json-data" class="centered-textarea center-placeholder" placeholder="Paste your JSON state here..."></textarea>
-    <div class="container-buttons">
-      <label><input type="checkbox" id="agreeCheckbox" /> I agree to terms</label>
-      <br />
-      <button id="submitButton" class="btn btn-primary" disabled onclick="State()">Submit</button>
-    </div>
-    <div id="result"></div>
-    <div class="form-group">
-      <input type="text" id="inputOfPrefix" placeholder="Enter prefix" />
-      <input type="text" id="inputOfAdmin" placeholder="Enter admin ID" />
-    </div>
-    <h2>Available Commands</h2>
-    <div id="listOfCommands"></div>
-    <button onclick="selectAllCommands()">Select All Commands</button>
-    <h2>Event Handlers</h2>
-    <div id="listOfCommandsEvent"></div>
-    <button onclick="selectAllEvents()">Select All Events</button>
-  </div>
-  <div class="footer">
-    <p id="ping">Ping: calculating...</p>
-    <p id="time">Time: loading...</p>
-  </div>
-  <script src="script.js"></script>
+    <header class="header">
+        <h1 class="header-title">Bot Manager</h1>
+        <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">Menu</h2>
+            <button class="sidebar-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="#" class="sidebar-item active" onclick="showSection('create')">
+                <i class="fas fa-robot"></i>
+                <span>Create Bot</span>
+            </a>
+            <a href="#" class="sidebar-item" onclick="showSection('login')">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login</span>
+            </a>
+            <a href="#" class="sidebar-item" onclick="showSection('commands')">
+                <i class="fas fa-code"></i>
+                <span>Commands</span>
+            </a>
+            <a href="#" class="sidebar-item" onclick="showSection('online')">
+                <i class="fas fa-users"></i>
+                <span>Online Bots</span>
+            </a>
+            <a href="#" class="sidebar-item" onclick="showSection('tutorial')">
+                <i class="fas fa-book"></i>
+                <span>Tutorial</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <main class="main">
+        <div class="profile">
+            <img src="images/images" alt="Profile" class="profile-image">
+            <h2 class="profile-name">Koja Babu</h2>
+            <p class="profile-bio">
+                Hey there! I'll warn you about using this project, your Facebook account is possible to get locked, 
+                restricted or suspended due to logging in to unknown location, automated behavior etc. Use a dummy account.
+            </p>
+        </div>
+        
+        <!-- Create Bot Section -->
+        <section id="create-section" class="card">
+            <h3 class="card-title">Create New Bot</h3>
+            <div class="form-group">
+                <label for="appState" class="form-label">Facebook Appstate</label>
+                <textarea id="appState" class="form-control" placeholder="Paste your appstate here" rows="5"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="botName" class="form-label">Bot Name</label>
+                <input type="text" id="botName" class="form-control" placeholder="e.g. Sweetheart">
+            </div>
+            <div class="form-group">
+                <label for="botPrefix" class="form-label">Bot Prefix</label>
+                <input type="text" id="botPrefix" class="form-control" placeholder="e.g. ! or /">
+            </div>
+            <div class="form-group">
+                <label for="botAdmin" class="form-label">Bot Admin (Facebook ID)</label>
+                <input type="text" id="botAdmin" class="form-control" placeholder="Your Facebook ID">
+            </div>
+            <p id="create-status" class="text-center" style="display: none;"></p>
+            <button class="btn btn-primary btn-block" onclick="createBot()">Create Bot</button>
+            <p class="text-center mt-3">
+                Already have a bot? <a class="text-link" onclick="showSection('login')" href="bot.kojaxd.html">Login here</a>
+            </p>
+        </section>
+        
+        <!-- Login Section -->
+        <section id="login-section" class="card" style="display: none;">
+            <h3 class="card-title">Login to Bot</h3>
+            <div class="form-group">
+                <label for="lUsername" class="form-label">Username</label>
+                <input type="text" id="lUsername" class="form-control" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="lPassword" class="form-label">Password</label>
+                <input type="password" id="lPassword" class="form-control" placeholder="Enter password">
+            </div>
+            <p id="login-status" class="text-center" style="display: none;"></p>
+            <button class="btn btn-primary btn-block" onclick="login()">Login</button>
+            <p class="text-center mt-3">
+                Don't have a bot? <a class="text-link" onclick="showSection('create')" href="bot.kojaxd.html">Create one</a>
+            </p>
+        </section>
+        
+        <!-- Commands Section -->
+        <section id="commands-section" class="card" style="display: none;">
+            <h3 class="card-title">Available Commands</h3>
+            <div id="commands-stats" class="text-center mb-3"></div>
+            <div id="commands-list" class="command-list"></div>
+        </section>
+        
+        <!-- Online Bots Section -->
+        <section id="online-section" class="card" style="display: none;">
+            <h3 class="card-title">Online Bots</h3>
+            <div id="user-online" class="user-list"></div>
+        </section>
+        
+        <!-- Tutorial Section -->
+        <section id="tutorial-section" class="card" style="display: none;">
+            <h3 class="card-title">How to Get Appstate</h3>
+            
+            <div class="tutorial-step">
+                <h4>Step 1: Install Kiwi Browser</h4>
+                <p>Go to Play Store and search for <strong>Kiwi Browser</strong> and download it</p>
+                <img src="images/nGA8oLY.jpeg" class="tutorial-image">
+            </div>
+            
+            <div class="tutorial-step">
+                <h4>Step 2: Download FBState Exporter</h4>
+                <p>Download c3c fbstate exporter: <a class="text-link" id="c3cdownload" href="bot.kojaxd.html">click here</a> to download it</p>
+                <img src="images/eYj6Sdt.jpeg" class="tutorial-image">
+            </div>
+            
+            <div class="tutorial-step">
+                <h4>Step 3: Open Kiwi Browser</h4>
+                <p>Open <strong>Kiwi Browser</strong> and click the 3 dots menu</p>
+                <img src="images/9JL92Hi.jpeg" class="tutorial-image">
+            </div>
+            
+            <div class="tutorial-step">
+                <h4>Step 4: Install Extension</h4>
+                <p>Click Extensions, then click +(from .zip/.crx/.user.js) and select c3c-ufc-utility-1.5.zip in your download folder</p>
+                <img src="images/awuxfJq.jpeg" class="tutorial-image">
+            </div>
+            
+            <div class="tutorial-step">
+                <h4>Step 5: Login to Facebook</h4>
+                <p>Proceed to facebook.com using Kiwi Browser and login your Facebook account (use a dummy account)</p>
+                <img src="images/WvzpLp3.jpeg" class="tutorial-image">
+            </div>
+            
+            <div class="tutorial-step">
+                <h4>Step 6: Get Appstate</h4>
+                <p>Find C3C FBState Utility in the menu and click it, then click "Copy to Clipboard"</p>
+                <img src="images/kVyOOOi.jpeg" class="tutorial-image">
+            </div>
+            
+            <div class="tutorial-step">
+                <h4>Final Step: Create Your Bot</h4>
+                <p>Paste your appstate in the "Create Bot" section and fill up your bot details. Congratulations! Your bot is now active.</p>
+                <p><em>Note: The bot only works in group chats. You can type <strong>(prefix)help</strong> to see available commands.</em></p>
+                <img src="images/YAEtSp5.jpeg" class="tutorial-image">
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        // Toastr configuration
+        toastr.options = {
+            positionClass: "toast-top-right",
+            timeOut: 5000,
+            extendedTimeOut: 2000,
+            closeButton: true,
+            progressBar: true,
+            newestOnTop: true
+        };
+        
+        // Show welcome message
+        toastr.info('Improved the profile panel, you can now delete the bot if you want.', 'Sweetheart');
+        
+        // Menu toggle functionality
+        const menuToggle = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarClose = document.querySelector('.sidebar-close');
+        
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+        
+        sidebarClose.addEventListener('click', () => {
+            menuToggle.classList.remove('active');
+            sidebar.classList.remove('active');
+        });
+        
+        // Show/hide sections
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(`${section}-section`).style.display = 'block';
+            
+            // Update active menu item
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.querySelector(`.sidebar-item[onclick="showSection('${section}')"]`).classList.add('active');
+            
+            // Update header title
+            document.querySelector('.header-title').textContent = 
+                section === 'create' ? 'Create Bot' :
+                section === 'login' ? 'Login' :
+                section === 'commands' ? 'Commands' :
+                section === 'online' ? 'Online Bots' : 'Tutorial';
+            
+            // Load data for specific sections
+            if (section === 'commands') {
+                getCommands();
+            } else if (section === 'online') {
+                listOfBots();
+            }
+            
+            // Close sidebar on mobile
+            if (window.innerWidth < 768) {
+                menuToggle.classList.remove('active');
+                sidebar.classList.remove('active');
+            }
+            
+            // Show toast notification
+            const messages = {
+                'create': 'Added automated post every 30mins to keep your bot alive. Posting random Quran verses.',
+                'login': 'Logging in can redirect you to control panel where you can configure your bot.',
+                'commands': 'I\'m doing my best to add more commands.',
+                'online': 'All active bots will be listed here.',
+                'tutorial': 'Follow the tutorial step by step.'
+            };
+            
+            toastr.info(messages[section], 'Sweetheart');
+        }
+        
+        // C3C Download link
+        document.getElementById('c3cdownload').addEventListener('click', () => {
+            window.location.href = "https://github.com/c3cbot/c3c-fbstate/archive/refs/tags/1.5.zip?fbclid=IwZXh0bgNhZW0CMTEAAR0tVofrArWOfC4VCwjnnEN8NrHDTN6SN_SAKgatYdykNOqaEGuLntWyfzc_aem_Lz75AozocHwJofvHoi-VwA";
+        });
+        
+        // Login function
+        async function login() {
+            const username = document.getElementById('lUsername').value;
+            const password = document.getElementById('lPassword').value;
+            const loginButton = document.querySelector('#login-section .btn');
+            const statusElement = document.getElementById('login-status');
+            
+            loginButton.disabled = true;
+            statusElement.style.display = 'block';
+            statusElement.style.color = 'var(--success)';
+            statusElement.textContent = 'Logging in...';
+            
+            if (!username) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'Username is required!';
+                loginButton.disabled = false;
+                return;
+            }
+            
+            if (!password) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'Password is required!';
+                loginButton.disabled = false;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({username, password})
+                });
+                
+                const data = await response.json();
+                
+                if (data.token) {
+                    statusElement.style.color = 'var(--success)';
+                    statusElement.textContent = 'Logged in successfully. Redirecting...';
+                    
+                    setTimeout(() => {
+                        window.location.href = `/profile?token=${data.token}&botid=${data.botid}`;
+                    }, 2000);
+                } else if (data.error) {
+                    statusElement.style.color = 'var(--danger)';
+                    statusElement.textContent = data.error;
+                    loginButton.disabled = false;
+                }
+            } catch (error) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'Something went wrong, try again later.';
+                loginButton.disabled = false;
+                console.error(error);
+            }
+        }
+        
+        // Create bot function
+        async function createBot() {
+            const appstate = document.getElementById('appState').value;
+            const botname = document.getElementById('botName').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const botPrefix = document.getElementById('botPrefix').value;
+            const botAdmin = document.getElementById('botAdmin').value;
+            const createButton = document.querySelector('#create-section .btn');
+            const statusElement = document.getElementById('create-status');
+            
+            createButton.disabled = true;
+            statusElement.style.display = 'block';
+            statusElement.style.color = 'var(--success)';
+            statusElement.textContent = 'Creating your bot...';
+            
+            if (!appstate) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'Appstate is required!';
+                createButton.disabled = false;
+                return;
+            }
+            
+            if (!username) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'Username is required!';
+                createButton.disabled = false;
+                return;
+            }
+            
+            if (!password) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'Password is required!';
+                createButton.disabled = false;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appstate,
+                        botname,
+                        botprefix: botPrefix,
+                        botadmin: botAdmin,
+                        username,
+                        password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.data) {
+                    statusElement.style.color = 'var(--success)';
+                    statusElement.textContent = data.data;
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else if (data.error) {
+                    statusElement.style.color = 'var(--danger)';
+                    statusElement.textContent = data.error;
+                    createButton.disabled = false;
+                }
+            } catch (error) {
+                statusElement.style.color = 'var(--danger)';
+                statusElement.textContent = 'An error occurred while creating the bot.';
+                createButton.disabled = false;
+                console.error(error);
+            }
+        }
+        
+        // Get commands function
+        async function getCommands() {
+            const commandsList = document.getElementById('commands-list');
+            const commandsStats = document.getElementById('commands-stats');
+            
+            commandsList.innerHTML = '<p class="text-center">Loading commands...';
+            
+            try {
+                const response = await fetch('/commands');
+                const data = await response.json();
+                
+                commandsList.innerHTML = '';
+                
+                if (!data || data.length === 0) {
+                    commandsList.innerHTML = '<p class="text-center">No commands found.';
+                    return;
+                }
+                
+                const total = [];
+                const usable = [];
+                
+                data.forEach(cmd => {
+                    const { name, description, permission, category, usages, credits } = cmd.config;
+                    
+                    if (category !== 'system' && category !== 'operator' && [0, 1, 2].includes(permission)) {
+                        usable.push(name);
+                    }
+                    total.push(name);
+                });
+                
+                commandsStats.innerHTML = `
+                    <p>Total commands: <strong>${total.length}
+                    <p>Usable commands: <strong>${usable.length}
+                `;
+                
+                data.forEach(cmd => {
+                    const { name, description, permission, category, usages, credits } = cmd.config;
+                    
+                    if (category !== 'system' && category !== 'operator' && [0, 1, 2].includes(permission)) {
+                        let permissionText = '';
+                        if (permission === 0) permissionText = 'User';
+                        if (permission === 2 || category === 'admin') permissionText = 'Bot Admin';
+                        if (permission === 1) permissionText = 'Group Admin';
+                        
+                        const commandCard = document.createElement('div');
+                        commandCard.className = 'command-card';
+                        
+                        commandCard.innerHTML = `
+                            <div class="command-name">${name}
+                            <div class="command-description">${description || 'No description provided'}
+                            <div class="command-meta">
+                                <span class="command-tag">${category}
+                                <span class="command-tag">${permissionText}
+                                <span class="command-tag">Credits: ${credits || 'ryuko'}
+                            
+                        `;
+                        
+                        commandsList.appendChild(commandCard);
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                commandsList.innerHTML = '<p class="text-center" style="color: var(--danger);">An error occurred while loading commands.';
+            }
+        }
+        
+        // List online bots function
+        async function listOfBots() {
+            const userOnline = document.getElementById('user-online');
+            
+            userOnline.innerHTML = '<p class="text-center">Loading online bots...';
+            
+            try {
+                const response = await fetch('/info');
+                const data = await response.json();
+                
+                userOnline.innerHTML = '';
+                
+                if (!data || data.length === 0) {
+                    userOnline.innerHTML = '<p class="text-center">No bots are currently online.';
+                    return;
+                }
+                
+                data.forEach(user => {
+                    const { name, thumbSrc, profileUrl, time } = user;
+                    
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card';
+                    
+                    userCard.innerHTML = `
+                        <img src="${thumbSrc}" alt="User Avatar" class="user-avatar">
+                        <div class="user-info">
+                            <div class="user-name">${name}
+                            <div class="user-id">${profileUrl}
+                            <div class="user-uptime">Uptime: ${timeFormat(time)}
+                        
+                    `;
+                    
+                    userOnline.appendChild(userCard);
+                    
+                    // Update uptime in real-time
+                    const uptimeElement = userCard.querySelector('.user-uptime');
+                    let currentTime = time;
+                    
+                    const intervalId = setInterval(() => {
+                        currentTime++;
+                        uptimeElement.textContent = `Uptime: ${timeFormat(currentTime)}`;
+                    }, 1000);
+                });
+            } catch (error) {
+                console.error(error);
+                userOnline.innerHTML = '<p class="text-center" style="color: var(--danger);">An error occurred while fetching online bots.';
+            }
+        }
+        
+        // Time formatting function
+        function timeFormat(seconds) {
+            const days = Math.floor(seconds / (3600 * 24));
+            const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            let timeString = '';
+            
+            if (days > 0) timeString += `${days}d `;
+            if (hours > 0 || days > 0) timeString += `${hours}h `;
+            if (minutes > 0 || hours > 0 || days > 0) timeString += `${minutes}m `;
+            timeString += `${secs}s`;
+            
+            return timeString.trim();
+        }
+        
+        // Initialize the page with create section visible by default
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('create');
+        });
+    </script>
 </body>
 </html>
