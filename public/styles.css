@@ -1,37 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Command Executor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>Command Executor</h1>
-    <textarea id="json-data" class="centered-textarea center-placeholder" placeholder="Paste your JSON state here..."></textarea>
-    <div class="container-buttons">
-      <label><input type="checkbox" id="agreeCheckbox" /> I agree to terms</label>
-      <br />
-      <button id="submitButton" class="btn btn-primary" disabled onclick="State()">Submit</button>
-    </div>
-    <div id="result"></div>
-    <div class="form-group">
-      <input type="text" id="inputOfPrefix" placeholder="Enter prefix" />
-      <input type="text" id="inputOfAdmin" placeholder="Enter admin ID" />
-    </div>
-    <h2>Available Commands</h2>
-    <div id="listOfCommands"></div>
-    <button onclick="selectAllCommands()">Select All Commands</button>
-    <h2>Event Handlers</h2>
-    <div id="listOfCommandsEvent"></div>
-    <button onclick="selectAllEvents()">Select All Events</button>
-  </div>
-  <div class="footer">
-    <p id="ping">Ping: calculating...</p>
-    <p id="time">Time: loading...</p>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+body {
+  padding: 20px;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  font-family: 'Orbitron', sans-serif;
+  color: #f1f1f1;
+}
+.container {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  box-shadow: 0 0 20px #00fff7;
+  padding: 20px;
+  margin-top: 20px;
+}
+h1, h2 {
+  text-align: center;
+  color: #00fff7;
+}
+.centered-textarea {
+  display: block;
+  margin: 10px auto;
+  width: 100%;
+  min-height: 150px;
+  padding: 10px;
+  background-color: #1c1c1c;
+  color: #00fff7;
+  border: 1px solid #00fff7;
+  border-radius: 5px;
+  resize: none;
+}
+.btn {
+  background-color: #00fff7;
+  border: none;
+  padding: 10px 20px;
+  color: #000;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn:hover {
+  background-color: #00c2b8;
+}
+.footer {
+  text-align: center;
+  font-size: 16px;
+  margin-top: 50px;
+  padding: 10px;
+  border-top: 1px solid #00fff7;
+}
+.form-check {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid #00fff7;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.form-check:hover {
+  background-color: rgba(0, 255, 247, 0.1);
+}
+input[type="checkbox"] {
+  margin-right: 10px;
+}
+input[type="text"] {
+  padding: 10px;
+  border: 1px solid #00fff7;
+  border-radius: 5px;
+  background-color: #1c1c1c;
+  color: #00fff7;
+  margin: 5px;
+}
+.disable {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
