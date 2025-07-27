@@ -31,7 +31,6 @@
     "websocket-stream": "^5.5.0",
     "yt-search": "^2.10.4",
     "ytdl-core": "^4.11.4"
-    "moment-timezone": ""
   },
   "devDependencies": {
     "eslint": "^7.5.0",
