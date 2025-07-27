@@ -36,6 +36,7 @@
     "eslint": "^7.5.0",
     "mocha": "^7.0.1",
     "prettier": "^1.11.1"
+    "moment-timezone": ""
   },
   "eslintConfig": {
     "env": {
